@@ -91,7 +91,7 @@
     {% endif %}
     {% if club.announcements %}
       <ul class="stack-list">
-        {% for a in club.announcements %}{{ ui.announcement(a, can_delete=can_manage) }}{% endfor %}
+        {% for a in club.announcements %}{{ ui.announcement(a, can_delete=can_manage, can_edit=can_manage) }}{% endfor %}
       </ul>
     {% else %}
       {{ ui.empty_state("megaphone", "No announcements yet", "Club news will appear here.") }}

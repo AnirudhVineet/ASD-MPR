@@ -231,7 +231,6 @@ def post_announcement(club_id):
         flash("Announcement posted.", "success")
     return redirect(url_for("clubs.detail", club_id=club.id))
 
-
 @bp.route("/<int:club_id>/announcements/<int:announcement_id>/delete", methods=["POST"])
 @login_required
 def delete_announcement(club_id, announcement_id):
@@ -244,3 +243,30 @@ def delete_announcement(club_id, announcement_id):
     db.session.commit()
     flash("Announcement deleted.", "info")
     return redirect(url_for("clubs.detail", club_id=club_id))
+
+
+@bp.route(
+    "/<int:club_id>/announcements/<int:announcement_id>/edit", methods=["GET", "POST"]
+)
+@login_required
+def edit_announcement(club_id, announcement_id):
+    club = get_club_or_404(club_id)
+    require_manager(club)
+    announcement = Announcement.query.filter_by(id=announcement_id, club_id=club.id).first()
+    if announcement is None:
+        abort(404)
+    if request.method == "POST":
+        title = request.form.get("title", "").strip()
+        body = request.form.get("body", "").strip()
+        if not title or not body:
+            flash("Announcements need a title and a message.", "error")
+        else:
+            announcement.title = title
+            announcement.body = body
+            db.session.commit()
+            flash("Announcement updated.", "success")
+            return redirect(url_for("clubs.detail", club_id=club.id))
+    return render_template(
+        "clubs/announcement_edit.html", club=club, announcement=announcement
+    )
+

@@ -135,7 +135,7 @@ cat-{{ category|lower|replace(' & ', '-')|replace(' ', '-') }}
 </div>
 {% endmacro %}
 
-{% macro announcement(a, show_club=False, can_delete=False) %}
+{% macro announcement(a, show_club=False, can_delete=False, can_edit=False) %}
 <li class="card announcement">
   <div class="announcement-head">
     <div>
@@ -146,14 +146,21 @@ cat-{{ category|lower|replace(' & ', '-')|replace(' ', '-') }}
         {{ a.created_at.strftime('%d %b %Y') }}
       </div>
     </div>
-    {% if can_delete %}
-      <form class="inline-form" method="post" action="{{ url_for('clubs.delete_announcement', club_id=a.club_id, announcement_id=a.id) }}"
-            onsubmit="return confirm('Delete this announcement?')">
-        {{ csrf() }}
-        <button class="btn btn-danger-ghost btn-sm" type="submit" title="Delete announcement">{{ icon("trash", "icon-sm") }}<span class="sr-only">Delete</span></button>
-      </form>
-    {% endif %}
+    <div style="display:flex;gap:4px;align-items:center">
+      {% if can_edit %}
+        <a class="btn btn-ghost btn-sm" href="{{ url_for('clubs.edit_announcement', club_id=a.club_id, announcement_id=a.id) }}"
+           title="Edit announcement">{{ icon("edit", "icon-sm") }}<span class="sr-only">Edit</span></a>
+      {% endif %}
+      {% if can_delete %}
+        <form class="inline-form" method="post" action="{{ url_for('clubs.delete_announcement', club_id=a.club_id, announcement_id=a.id) }}"
+              onsubmit="return confirm('Delete this announcement?')">
+          {{ csrf() }}
+          <button class="btn btn-danger-ghost btn-sm" type="submit" title="Delete announcement">{{ icon("trash", "icon-sm") }}<span class="sr-only">Delete</span></button>
+        </form>
+      {% endif %}
+    </div>
   </div>
   <p class="announcement-body">{{ a.body }}</p>
 </li>
 {% endmacro %}
+
