@@ -117,3 +117,90 @@ def test_club_detail_renders_for_visitors_and_managers(client, app):
     login(client, email="lead@college.edu")
     resp = client.get(f"/clubs/{club_id}")
     assert b"Manage members" in resp.data and b"Post announcement" in resp.data
+
+
+# ── AM-28: Edit Announcement ──────────────────────────────────────────────────
+
+def _post_announcement(client, club_id, title="Hello", body="World"):
+    return client.post(
+        f"/clubs/{club_id}/announcements",
+        data={"title": title, "body": body},
+    )
+
+
+def test_admin_can_open_edit_announcement_page(client, app):
+    """Club admin can GET the edit page with pre-populated values."""
+    from app.models import Announcement
+
+    lead = make_user(app, email="lead@college.edu")
+    club_id = make_club(app, admin_id=lead)
+    login(client, email="lead@college.edu")
+    _post_announcement(client, club_id, title="Original title", body="Original body")
+    with app.app_context():
+        ann_id = Announcement.query.one().id
+    resp = client.get(f"/clubs/{club_id}/announcements/{ann_id}/edit")
+    assert resp.status_code == 200
+    assert b"Original title" in resp.data
+    assert b"Original body" in resp.data
+
+
+def test_admin_can_edit_announcement(client, app):
+    """Club admin can successfully update an announcement."""
+    from app.models import Announcement
+
+    lead = make_user(app, email="lead@college.edu")
+    club_id = make_club(app, admin_id=lead)
+    login(client, email="lead@college.edu")
+    _post_announcement(client, club_id, title="Old title", body="Old body")
+    with app.app_context():
+        ann_id = Announcement.query.one().id
+    resp = client.post(
+        f"/clubs/{club_id}/announcements/{ann_id}/edit",
+        data={"title": "New title", "body": "New body"},
+        follow_redirects=True,
+    )
+    assert resp.status_code == 200
+    assert b"New title" in resp.data
+    assert b"Announcement updated" in resp.data
+    with app.app_context():
+        ann = Announcement.query.one()
+        assert ann.title == "New title"
+        assert ann.body == "New body"
+
+
+def test_non_admin_cannot_edit_announcement(client, app):
+    """A regular member gets 403 when trying to edit an announcement."""
+    from app.extensions import db
+    from app.models import Announcement, Membership
+
+    lead = make_user(app, email="lead@college.edu")
+    member = make_user(app, email="member@college.edu")
+    club_id = make_club(app, admin_id=lead)
+    with app.app_context():
+        db.session.add(Membership(user_id=member, club_id=club_id))
+        db.session.add(Announcement(club_id=club_id, title="Hi", body="Body", author_id=lead))
+        db.session.commit()
+        ann_id = Announcement.query.one().id
+    login(client, email="member@college.edu")
+    assert client.get(f"/clubs/{club_id}/announcements/{ann_id}/edit").status_code == 403
+    assert client.post(
+        f"/clubs/{club_id}/announcements/{ann_id}/edit",
+        data={"title": "Hacked", "body": "x"},
+    ).status_code == 403
+
+
+def test_existing_announcement_create_delete_intact(client, app):
+    """Existing create and delete announcement flows are unaffected."""
+    from app.models import Announcement
+
+    lead = make_user(app, email="lead@college.edu")
+    club_id = make_club(app, admin_id=lead)
+    login(client, email="lead@college.edu")
+    _post_announcement(client, club_id, title="News", body="Details")
+    with app.app_context():
+        assert Announcement.query.count() == 1
+        ann_id = Announcement.query.one().id
+    client.post(f"/clubs/{club_id}/announcements/{ann_id}/delete")
+    with app.app_context():
+        assert Announcement.query.count() == 0
+

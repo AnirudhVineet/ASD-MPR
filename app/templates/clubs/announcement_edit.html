@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% import "_macros.html" as ui with context %}
+{% block title %}Edit Announcement · {{ club.name }}{% endblock %}
+{% block content %}
+<a class="back-link" href="{{ url_for('clubs.detail', club_id=club.id) }}">
+  {{ ui.icon("arrow-left", "icon-sm") }} Back to {{ club.name }}
+</a>
+
+<div class="page-head">
+  <div>
+    <h1>Edit Announcement</h1>
+    <p class="muted">Update this announcement for <strong>{{ club.name }}</strong> members.</p>
+  </div>
+</div>
+
+<div class="card form-card">
+  <form method="post" class="form-grid">
+    {{ ui.csrf() }}
+    <label class="field">
+      <span class="field-label">Title</span>
+      <input name="title" required maxlength="200" value="{{ announcement.title }}"
+             placeholder="e.g. Meeting moved to Room 204">
+    </label>
+    <label class="field">
+      <span class="field-label">Message</span>
+      <textarea name="body" required placeholder="Share news with your members">{{ announcement.body }}</textarea>
+    </label>
+    <div class="form-actions">
+      <a class="btn btn-secondary" href="{{ url_for('clubs.detail', club_id=club.id) }}">Cancel</a>
+      <button class="btn" type="submit">{{ ui.icon("check", "icon-sm") }} Save changes</button>
+    </div>
+  </form>
+</div>
+{% endblock %}

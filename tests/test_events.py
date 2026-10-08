@@ -169,3 +169,59 @@ def test_deleting_club_cascades(client, app):
     client.post(f"/clubs/{club_id}/delete")
     with app.app_context():
         assert Event.query.count() == 0
+
+
+# ── AM-30: RSVP End-to-End Lifecycle Test ─────────────────────────────────────
+
+
+def test_rsvp_full_lifecycle(client, app):
+    """
+    Complete RSVP lifecycle:
+      1. Student registers and logs in.
+      2. Student joins a club.
+      3. An upcoming event exists for that club.
+      4. Student RSVPs → DB record created, event-detail page shows "You're going".
+      5. RSVP appears on the student's dashboard (AM-27 Going to section).
+      6. Student cancels RSVP → DB record removed.
+      7. Dashboard no longer shows the RSVP (empty Going to state).
+    """
+    # 1. Register + login
+    user_id = make_user(app, email="student@college.edu", name="Sam Student")
+    club_id = make_club(app)
+    event_id = make_event(app, club_id)  # 7 days from now
+
+    # 2. Join club (non-member cannot RSVP — business rule enforced)
+    join(app, user_id, club_id)
+
+    login(client, email="student@college.edu")
+
+    # 3. Confirm non-member block is bypassed now we've joined
+    with app.app_context():
+        assert RSVP.query.count() == 0
+
+    # 4. RSVP
+    resp = client.post(f"/events/{event_id}/rsvp", follow_redirects=True)
+    assert resp.status_code == 200
+    assert b"You&#39;re going" in resp.data or b"You're going" in resp.data
+
+    # 5. Verify DB record
+    with app.app_context():
+        assert RSVP.query.filter_by(user_id=user_id, event_id=event_id).count() == 1
+
+    # 6. Verify RSVP appears on dashboard (AM-27 Going to section)
+    dashboard = client.get("/dashboard")
+    assert b"Going to" in dashboard.data
+    assert b"Robot Wars" in dashboard.data  # event title from make_event
+
+    # 7. Cancel RSVP
+    resp = client.post(f"/events/{event_id}/rsvp/cancel", follow_redirects=True)
+    assert resp.status_code == 200
+
+    # 8. Verify DB record removed
+    with app.app_context():
+        assert RSVP.query.filter_by(user_id=user_id, event_id=event_id).count() == 0
+
+    # 9. Verify dashboard no longer shows the RSVP
+    dashboard = client.get("/dashboard")
+    assert b"No upcoming RSVPs" in dashboard.data
+
