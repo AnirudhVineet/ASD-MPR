@@ -5,7 +5,7 @@ from flask_login import current_user, login_required
 from sqlalchemy import text
 
 from .extensions import db
-from .models import Announcement, Club, Event, Membership
+from .models import RSVP, Announcement, Club, Event, Membership
 
 bp = Blueprint("main", __name__)
 
@@ -48,8 +48,20 @@ def dashboard():
         if club_ids
         else []
     )
+    my_rsvps = (
+        RSVP.query.filter_by(user_id=current_user.id)
+        .join(Event)
+        .filter(Event.starts_at >= datetime.now())
+        .order_by(Event.starts_at)
+        .limit(10)
+        .all()
+    )
     return render_template(
-        "dashboard.html", memberships=memberships, events=events, announcements=announcements
+        "dashboard.html",
+        memberships=memberships,
+        events=events,
+        announcements=announcements,
+        my_rsvps=my_rsvps,
     )
 
 

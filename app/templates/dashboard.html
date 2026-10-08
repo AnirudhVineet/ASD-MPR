@@ -39,6 +39,21 @@
   {% endif %}
 </section>
 
+<section class="section">
+  <div class="section-head">
+    <h2>{{ ui.icon("check-circle") }} Going to
+      {% if my_rsvps %}<span class="count">{{ my_rsvps|length }}</span>{% endif %}
+    </h2>
+  </div>
+  {% if my_rsvps %}
+    <div class="grid-events">
+      {% for rsvp in my_rsvps %}{{ ui.event_card(rsvp.event) }}{% endfor %}
+    </div>
+  {% else %}
+    {{ ui.empty_state("ticket", "No upcoming RSVPs", "RSVP to events from your clubs and they'll appear here.", url_for('events.upcoming'), "Browse events") }}
+  {% endif %}
+</section>
+
 <div class="two-col">
   <section>
     <div class="section-head">
