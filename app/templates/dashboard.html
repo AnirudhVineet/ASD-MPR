@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+<h1>Hi, {{ current_user.name }}</h1>
+
+<section>
+  <h2>My clubs</h2>
+  {% if memberships %}
+    <div class="grid">
+      {% for m in memberships %}
+        <div class="card">
+          <span class="tag">{{ m.club.category }}</span>
+          <h3>{{ m.club.name }}</h3>
+          <p class="muted">{{ m.role|capitalize }}</p>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p class="muted">You haven't joined any clubs yet.</p>
+  {% endif %}
+</section>
+
+<section>
+  <h2>Upcoming events in my clubs</h2>
+  {% if events %}
+    <ul class="list">
+      {% for event in events %}
+        <li class="card">
+          <strong>{{ event.title }}</strong> <span class="muted">· {{ event.club.name }}</span>
+          <div class="muted">{{ event.starts_at.strftime('%a %d %b %Y, %H:%M') }}{% if event.has_rsvp(current_user) %} · You're going{% endif %}</div>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p class="muted">Nothing scheduled.</p>
+  {% endif %}
+</section>
+
+<section>
+  <h2>Latest announcements</h2>
+  {% if announcements %}
+    <ul class="list">
+      {% for a in announcements %}
+        <li class="card">
+          <strong>{{ a.title }}</strong> <span class="muted">· {{ a.club.name }} · {{ a.created_at.strftime('%d %b %Y') }}</span>
+          <p>{{ a.body }}</p>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p class="muted">No announcements yet.</p>
+  {% endif %}
+</section>
+{% endblock %}

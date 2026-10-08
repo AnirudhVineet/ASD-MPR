@@ -11,7 +11,17 @@
     <div class="container topbar-inner">
       <a class="brand" href="{{ url_for('main.index') }}">Campus Clubs</a>
       <nav class="nav">
-        {% block nav %}{% endblock %}
+        {% if current_user.is_authenticated %}
+          <a href="{{ url_for('main.dashboard') }}">Dashboard</a>
+          <span class="muted">{{ current_user.name }}{% if current_user.is_site_admin %} (admin){% endif %}</span>
+          <form method="post" action="{{ url_for('auth.logout') }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button class="btn btn-outline" type="submit">Log out</button>
+          </form>
+        {% else %}
+          <a href="{{ url_for('auth.login') }}">Log in</a>
+          <a class="btn" href="{{ url_for('auth.register') }}">Register</a>
+        {% endif %}
       </nav>
     </div>
   </header>
