@@ -31,3 +31,13 @@ groups:
         annotations:
           summary: p95 latency above 1s
           description: "p95 request latency is {{ $value | humanizeDuration }}."
+
+      - alert: NoNewRegistrations
+        expr: increase(clubapp_registrations_total{job="clubapp"}[24h]) == 0
+        for: 30m
+        labels:
+          severity: info
+        annotations:
+          summary: No new user registrations in the last 24 hours
+          description: "The clubapp_registrations_total counter has not increased in 24h, suggesting no new users have signed up."
+
