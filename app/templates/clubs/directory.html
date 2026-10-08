@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Clubs{% endblock %}
+{% block content %}
+<div class="row spread">
+  <h1>Club directory</h1>
+  {% if current_user.is_authenticated and current_user.is_site_admin %}
+    <a class="btn" href="{{ url_for('clubs.create') }}">New club</a>
+  {% endif %}
+</div>
+
+<form method="get" class="row card" style="margin-bottom:16px">
+  <input name="q" value="{{ q }}" placeholder="Search clubs by name" style="flex:2;min-width:180px">
+  <select name="category" style="flex:1;min-width:150px">
+    <option value="">All categories</option>
+    {% for c in categories %}
+      <option value="{{ c }}" {% if c == category %}selected{% endif %}>{{ c }}</option>
+    {% endfor %}
+  </select>
+  <button class="btn" type="submit">Search</button>
+</form>
+
+{% if clubs %}
+  <div class="grid">
+    {% for club in clubs %}
+      <a class="card" href="{{ url_for('clubs.detail', club_id=club.id) }}" style="color:inherit">
+        <span class="tag">{{ club.category }}</span>
+        <h3>{{ club.name }}</h3>
+        <p class="muted">{{ club.description|truncate(100) }}</p>
+        <p class="muted">{{ club.member_count }} member{{ '' if club.member_count == 1 else 's' }}</p>
+      </a>
+    {% endfor %}
+  </div>
+{% else %}
+  <p class="muted">No clubs match your search.</p>
+{% endif %}
+{% endblock %}

@@ -10,7 +10,7 @@
       {% for m in memberships %}
         <div class="card">
           <span class="tag">{{ m.club.category }}</span>
-          <h3>{{ m.club.name }}</h3>
+          <h3><a href="{{ url_for('clubs.detail', club_id=m.club.id) }}">{{ m.club.name }}</a></h3>
           <p class="muted">{{ m.role|capitalize }}</p>
         </div>
       {% endfor %}

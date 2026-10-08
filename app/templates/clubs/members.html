@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}Members · {{ club.name }}{% endblock %}
+{% block content %}
+<p><a href="{{ url_for('clubs.detail', club_id=club.id) }}">&larr; {{ club.name }}</a></p>
+<h1>Members ({{ memberships|length }})</h1>
+{% if memberships %}
+<div style="overflow-x:auto">
+<table>
+  <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Joined</th><th></th></tr></thead>
+  <tbody>
+    {% for m in memberships %}
+      <tr>
+        <td>{{ m.user.name }}</td>
+        <td>{{ m.user.email }}</td>
+        <td>{{ m.role|capitalize }}</td>
+        <td>{{ m.joined_at.strftime('%d %b %Y') }}</td>
+        <td class="row">
+          <form method="post" action="{{ url_for('clubs.set_role', club_id=club.id, user_id=m.user_id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="hidden" name="role" value="{{ 'member' if m.role == 'admin' else 'admin' }}">
+            <button class="btn-link" type="submit">{{ 'Make member' if m.role == 'admin' else 'Make admin' }}</button>
+          </form>
+          <form method="post" action="{{ url_for('clubs.remove_member', club_id=club.id, user_id=m.user_id) }}"
+                onsubmit="return confirm('Remove this member from the club?')">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button class="btn-link" type="submit" style="color:var(--danger)">Remove</button>
+          </form>
+        </td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>
+</div>
+{% else %}
+  <p class="muted">No members yet.</p>
+{% endif %}
+{% endblock %}

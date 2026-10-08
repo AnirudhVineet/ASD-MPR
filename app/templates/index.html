@@ -30,7 +30,7 @@
       {% for club in clubs %}
         <div class="card">
           <span class="tag">{{ club.category }}</span>
-          <h3>{{ club.name }}</h3>
+          <h3><a href="{{ url_for('clubs.detail', club_id=club.id) }}">{{ club.name }}</a></h3>
           <p class="muted">{{ club.member_count }} member{{ '' if club.member_count == 1 else 's' }}</p>
         </div>
       {% endfor %}

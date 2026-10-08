@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}{{ club.name }}{% endblock %}
+{% block content %}
+<p><a href="{{ url_for('clubs.directory') }}">&larr; All clubs</a></p>
+
+<div class="card">
+  <div class="row spread">
+    <div>
+      <span class="tag">{{ club.category }}</span>
+      <h1 style="margin:6px 0">{{ club.name }}</h1>
+      <p class="muted" style="margin:0">{{ club.member_count }} member{{ '' if club.member_count == 1 else 's' }}</p>
+    </div>
+    <div class="row">
+      {% if current_user.is_authenticated %}
+        {% if membership %}
+          <span class="muted">You're a {{ membership.role }}</span>
+          <form method="post" action="{{ url_for('clubs.leave', club_id=club.id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button class="btn btn-outline" type="submit">Leave</button>
+          </form>
+        {% else %}
+          <form method="post" action="{{ url_for('clubs.join', club_id=club.id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button class="btn" type="submit">Join club</button>
+          </form>
+        {% endif %}
+      {% else %}
+        <a class="btn" href="{{ url_for('auth.login', next=request.path) }}">Log in to join</a>
+      {% endif %}
+    </div>
+  </div>
+  <p>{{ club.description }}</p>
+
+  {% if can_manage %}
+    <div class="row">
+      <a class="btn btn-outline" href="{{ url_for('clubs.edit', club_id=club.id) }}">Edit club</a>
+      <a class="btn btn-outline" href="{{ url_for('clubs.members', club_id=club.id) }}">Manage members</a>
+      {% if current_user.is_site_admin %}
+        <form method="post" action="{{ url_for('clubs.delete', club_id=club.id) }}"
+              onsubmit="return confirm('Delete this club and all its events?')">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button class="btn btn-danger" type="submit">Delete club</button>
+        </form>
+      {% endif %}
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Edit club' if club else 'New club' }}{% endblock %}
+{% block content %}
+<h1>{{ 'Edit ' ~ club.name if club else 'New club' }}</h1>
+<form method="post" class="stack card">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <label>Name <input name="name" value="{{ form.get('name', '') }}" required maxlength="120"></label>
+  <label>Category
+    <select name="category" required>
+      {% for c in categories %}
+        <option value="{{ c }}" {% if c == form.get('category') %}selected{% endif %}>{{ c }}</option>
+      {% endfor %}
+    </select>
+  </label>
+  <label>Description <textarea name="description">{{ form.get('description', '') }}</textarea></label>
+  {% if not club %}
+    <label>Club admin email (optional)
+      <input type="email" name="admin_email" value="{{ form.get('admin_email', '') }}" placeholder="Must be a registered user">
+    </label>
+  {% endif %}
+  <div class="row">
+    <button class="btn" type="submit">Save</button>
+    <a href="{{ url_for('clubs.detail', club_id=club.id) if club else url_for('clubs.directory') }}">Cancel</a>
+  </div>
+</form>
+{% endblock %}
