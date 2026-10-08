@@ -107,3 +107,13 @@ def test_club_admin_can_edit_but_not_delete(client, app):
 
 def test_unknown_club_404(client):
     assert client.get("/clubs/999").status_code == 404
+
+
+def test_club_detail_renders_for_visitors_and_managers(client, app):
+    lead = make_user(app, email="lead@college.edu")
+    club_id = make_club(app, admin_id=lead)
+    resp = client.get(f"/clubs/{club_id}")
+    assert resp.status_code == 200 and b"Log in to join" in resp.data
+    login(client, email="lead@college.edu")
+    resp = client.get(f"/clubs/{club_id}")
+    assert b"Manage members" in resp.data and b"Post announcement" in resp.data
