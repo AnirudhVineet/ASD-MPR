@@ -23,6 +23,7 @@ def create_app(config_object=Config) -> Flask:
     def load_user(user_id):
         return db.session.get(models.User, int(user_id))
 
+    from . import metrics
     from .auth import bp as auth_bp
     from .cli import register_cli
     from .clubs import bp as clubs_bp
@@ -34,6 +35,7 @@ def create_app(config_object=Config) -> Flask:
     app.register_blueprint(clubs_bp)
     app.register_blueprint(events_bp)
     register_cli(app)
+    metrics.init_app(app)
 
     for code, (title, message) in ERRORS.items():
         app.register_error_handler(
