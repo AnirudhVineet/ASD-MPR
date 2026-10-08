@@ -1,36 +1,42 @@
 {% extends "base.html" %}
+{% import "_macros.html" as ui with context %}
 {% block title %}Clubs{% endblock %}
 {% block content %}
-<div class="row spread">
-  <h1>Club directory</h1>
+<div class="page-head">
+  <div>
+    <h1>Club directory</h1>
+    <p class="muted">Find a community that matches your interests.</p>
+  </div>
   {% if current_user.is_authenticated and current_user.is_site_admin %}
-    <a class="btn" href="{{ url_for('clubs.create') }}">New club</a>
+    <a class="btn" href="{{ url_for('clubs.create') }}">{{ ui.icon("plus") }} New club</a>
   {% endif %}
 </div>
 
-<form method="get" class="row card" style="margin-bottom:16px">
-  <input name="q" value="{{ q }}" placeholder="Search clubs by name" style="flex:2;min-width:180px">
-  <select name="category" style="flex:1;min-width:150px">
-    <option value="">All categories</option>
+<div class="card filters">
+  <form method="get" class="search-row" role="search">
+    <label class="search-field">
+      <span class="sr-only">Search clubs</span>
+      {{ ui.icon("search") }}
+      <input type="search" name="q" value="{{ q }}" placeholder="Search clubs by name">
+    </label>
+    {% if category %}<input type="hidden" name="category" value="{{ category }}">{% endif %}
+    <button class="btn" type="submit">Search</button>
+  </form>
+  <nav class="chips" aria-label="Filter by category">
+    <a class="chip {{ 'active' if not category }}" href="{{ url_for('clubs.directory', q=q or None) }}">All</a>
     {% for c in categories %}
-      <option value="{{ c }}" {% if c == category %}selected{% endif %}>{{ c }}</option>
+      <a class="chip badge-dot {{ ui.cat_class(c) }} {{ 'active' if c == category }}"
+         href="{{ url_for('clubs.directory', q=q or None, category=c) }}">{{ c }}</a>
     {% endfor %}
-  </select>
-  <button class="btn" type="submit">Search</button>
-</form>
+  </nav>
+</div>
 
 {% if clubs %}
-  <div class="grid">
-    {% for club in clubs %}
-      <a class="card" href="{{ url_for('clubs.detail', club_id=club.id) }}" style="color:inherit">
-        <span class="tag">{{ club.category }}</span>
-        <h3>{{ club.name }}</h3>
-        <p class="muted">{{ club.description|truncate(100) }}</p>
-        <p class="muted">{{ club.member_count }} member{{ '' if club.member_count == 1 else 's' }}</p>
-      </a>
-    {% endfor %}
+  <p class="result-count">{{ ui.plural(clubs|length, 'club') }}{% if q or category %} found{% endif %}</p>
+  <div class="grid-clubs">
+    {% for club in clubs %}{{ ui.club_card(club) }}{% endfor %}
   </div>
 {% else %}
-  <p class="muted">No clubs match your search.</p>
+  {{ ui.empty_state("search", "No clubs match your search", "Try a different name or pick another category.", url_for('clubs.directory'), "Clear filters") }}
 {% endif %}
 {% endblock %}

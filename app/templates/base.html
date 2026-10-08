@@ -1,42 +1,92 @@
+{% import "_macros.html" as ui with context %}
+{% set endpoint = request.endpoint or '' %}
 <!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
   <title>{% block title %}Campus Clubs{% endblock %} · Campus Clubs</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap">
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <script src="{{ url_for('static', filename='app.js') }}" defer></script>
 </head>
-<body>
-  <header class="topbar">
-    <div class="container topbar-inner">
-      <a class="brand" href="{{ url_for('main.index') }}">Campus Clubs</a>
-      <nav class="nav">
-        <a href="{{ url_for('clubs.directory') }}">Clubs</a>
-        <a href="{{ url_for('events.upcoming') }}">Events</a>
-        {% if current_user.is_authenticated %}
-          <a href="{{ url_for('main.dashboard') }}">Dashboard</a>
-          <span class="muted">{{ current_user.name }}{% if current_user.is_site_admin %} (admin){% endif %}</span>
-          <form method="post" action="{{ url_for('auth.logout') }}">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-            <button class="btn btn-outline" type="submit">Log out</button>
-          </form>
-        {% else %}
-          <a href="{{ url_for('auth.login') }}">Log in</a>
-          <a class="btn" href="{{ url_for('auth.register') }}">Register</a>
-        {% endif %}
+<body class="{% block body_class %}{% endblock %}">
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="brand" href="{{ url_for('main.index') }}">
+        <span class="brand-mark">{{ ui.icon("cap") }}</span>
+        Campus Clubs
+      </a>
+      <button class="nav-toggle" type="button" data-nav-toggle aria-expanded="false" aria-controls="site-nav">
+        {{ ui.icon("menu") }}<span class="sr-only">Menu</span>
+      </button>
+      <nav class="nav" id="site-nav">
+        <div class="nav-links">
+          <a class="nav-link {{ 'active' if endpoint.startswith('clubs.') }}" href="{{ url_for('clubs.directory') }}">{{ ui.icon("compass") }} Clubs</a>
+          <a class="nav-link {{ 'active' if endpoint.startswith('events.') }}" href="{{ url_for('events.upcoming') }}">{{ ui.icon("calendar") }} Events</a>
+          {% if current_user.is_authenticated %}
+            <a class="nav-link {{ 'active' if endpoint == 'main.dashboard' }}" href="{{ url_for('main.dashboard') }}">{{ ui.icon("grid") }} Dashboard</a>
+          {% endif %}
+        </div>
+        <div class="nav-user">
+          {% if current_user.is_authenticated %}
+            <span class="user-chip">
+              {{ ui.avatar(current_user.name, "avatar-sm") }}
+              {{ current_user.name }}
+              {% if current_user.is_site_admin %}<span class="pill pill-brand">{{ ui.icon("shield") }} Admin</span>{% endif %}
+            </span>
+            <form method="post" action="{{ url_for('auth.logout') }}">
+              {{ ui.csrf() }}
+              <button class="btn btn-ghost btn-sm" type="submit">{{ ui.icon("logout", "icon-sm") }} Log out</button>
+            </form>
+          {% else %}
+            <a class="btn btn-ghost btn-sm" href="{{ url_for('auth.login') }}">Log in</a>
+            <a class="btn btn-sm" href="{{ url_for('auth.register') }}">Register</a>
+          {% endif %}
+        </div>
       </nav>
     </div>
   </header>
 
-  <main class="container">
-    {% with messages = get_flashed_messages(with_categories=true) %}
-      {% for category, message in messages %}
-        <div class="flash flash-{{ category }}">{{ message }}</div>
-      {% endfor %}
-    {% endwith %}
-    {% block content %}{% endblock %}
+  <main>
+    <div class="container">
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          <div class="flashes" role="status">
+            {% for category, message in messages %}
+              <div class="flash flash-{{ category }}">
+                {{ ui.icon({'success': 'check-circle', 'error': 'alert'}.get(category, 'info')) }}
+                <span class="flash-text">{{ message }}</span>
+                <button class="flash-close" type="button" data-dismiss aria-label="Dismiss">{{ ui.icon("x", "icon-sm") }}</button>
+              </div>
+            {% endfor %}
+          </div>
+        {% endif %}
+      {% endwith %}
+      {% block content %}{% endblock %}
+    </div>
   </main>
 
-  <footer class="footer container">College Club Management</footer>
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <a class="brand" href="{{ url_for('main.index') }}">
+        <span class="brand-mark">{{ ui.icon("cap") }}</span>
+        Campus Clubs
+      </a>
+      <nav class="footer-links" aria-label="Footer">
+        <a href="{{ url_for('clubs.directory') }}">Clubs</a>
+        <a href="{{ url_for('events.upcoming') }}">Events</a>
+        {% if current_user.is_authenticated %}
+          <a href="{{ url_for('main.dashboard') }}">Dashboard</a>
+        {% else %}
+          <a href="{{ url_for('auth.register') }}">Join</a>
+        {% endif %}
+      </nav>
+      <span class="subtle">College Club Management</span>
+    </div>
+  </footer>
 </body>
 </html>

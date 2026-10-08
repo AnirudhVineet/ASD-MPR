@@ -1,42 +1,62 @@
 {% extends "base.html" %}
+{% import "_macros.html" as ui with context %}
 {% block title %}Home{% endblock %}
 {% block content %}
 <section class="hero">
-  <h1>Find your people on campus</h1>
-  <p>Browse student clubs, join the ones you love, and never miss an event.</p>
+  <div>
+    <span class="eyebrow">{{ ui.icon("sparkles", "icon-sm") }} Your campus, all in one place</span>
+    <h1>Find your people on campus</h1>
+    <p class="hero-lead">Browse student clubs, join the ones you love, and never miss an event.</p>
+    <div class="hero-actions">
+      <a class="btn btn-white btn-lg" href="{{ url_for('clubs.directory') }}">{{ ui.icon("compass") }} Explore clubs</a>
+      {% if current_user.is_authenticated %}
+        <a class="btn btn-glass btn-lg" href="{{ url_for('main.dashboard') }}">Go to dashboard {{ ui.icon("arrow-right") }}</a>
+      {% else %}
+        <a class="btn btn-glass btn-lg" href="{{ url_for('auth.register') }}">Join now {{ ui.icon("arrow-right") }}</a>
+      {% endif %}
+    </div>
+  </div>
+  <div class="hero-steps" aria-hidden="true">
+    <div class="hero-step">
+      <span class="hero-step-icon">{{ ui.icon("search") }}</span>
+      <div><strong>Discover</strong><span>Search clubs by name or interest</span></div>
+    </div>
+    <div class="hero-step">
+      <span class="hero-step-icon">{{ ui.icon("user-plus") }}</span>
+      <div><strong>Join</strong><span>Become a member in one click</span></div>
+    </div>
+    <div class="hero-step">
+      <span class="hero-step-icon">{{ ui.icon("ticket") }}</span>
+      <div><strong>Show up</strong><span>RSVP to events and stay in the loop</span></div>
+    </div>
+  </div>
 </section>
 
-<section>
-  <h2>Upcoming events</h2>
+<section class="section">
+  <div class="section-head">
+    <h2>Upcoming events</h2>
+    <a class="section-link" href="{{ url_for('events.upcoming') }}">All events {{ ui.icon("arrow-right", "icon-sm") }}</a>
+  </div>
   {% if upcoming %}
-    <ul class="list">
-      {% for event in upcoming %}
-        <li class="card">
-          <a href="{{ url_for('events.detail', event_id=event.id) }}"><strong>{{ event.title }}</strong></a>
-          <span class="muted">· {{ event.club.name }}</span>
-          <div class="muted">{{ event.starts_at.strftime('%a %d %b %Y, %H:%M') }} · {{ event.location or 'TBA' }}</div>
-        </li>
-      {% endfor %}
-    </ul>
+    <div class="grid-events">
+      {% for event in upcoming %}{{ ui.event_card(event) }}{% endfor %}
+    </div>
   {% else %}
-    <p class="muted">No upcoming events yet.</p>
+    {{ ui.empty_state("calendar", "No upcoming events yet", "When clubs schedule events, they'll show up here.") }}
   {% endif %}
 </section>
 
-<section>
-  <h2>Clubs</h2>
+<section class="section">
+  <div class="section-head">
+    <h2>Newest clubs</h2>
+    <a class="section-link" href="{{ url_for('clubs.directory') }}">Browse all clubs {{ ui.icon("arrow-right", "icon-sm") }}</a>
+  </div>
   {% if clubs %}
-    <div class="grid">
-      {% for club in clubs %}
-        <div class="card">
-          <span class="tag">{{ club.category }}</span>
-          <h3><a href="{{ url_for('clubs.detail', club_id=club.id) }}">{{ club.name }}</a></h3>
-          <p class="muted">{{ club.member_count }} member{{ '' if club.member_count == 1 else 's' }}</p>
-        </div>
-      {% endfor %}
+    <div class="grid-clubs">
+      {% for club in clubs %}{{ ui.club_card(club) }}{% endfor %}
     </div>
   {% else %}
-    <p class="muted">No clubs have been created yet.</p>
+    {{ ui.empty_state("compass", "No clubs have been created yet", "Once a site admin adds clubs, you can browse and join them here.") }}
   {% endif %}
 </section>
 {% endblock %}

@@ -1,155 +1,101 @@
 {% extends "base.html" %}
-{% block title %}{{ club.name }}
-<section>
-  <h2>Upcoming events</h2>
-  {% set upcoming = club.upcoming_events() %}
-  {% if upcoming %}
-    <ul class="list">
-      {% for event in upcoming %}
-        <li class="card">
-          <a href="{{ url_for('events.detail', event_id=event.id) }}"><strong>{{ event.title }}</strong></a>
-          <div class="muted">
-            {{ event.starts_at.strftime('%a %d %b %Y, %H:%M') }} · {{ event.location or 'TBA' }} ·
-            {{ event.attendee_count }}{% if event.capacity %} / {{ event.capacity }}{% endif %} going
-          </div>
-        </li>
-      {% endfor %}
-    </ul>
-  {% else %}
-    <p class="muted">No upcoming events.</p>
-  {% endif %}
-</section>
-
-<section>
-  <h2>Announcements</h2>
-  {% if can_manage %}
-    <form method="post" action="{{ url_for('clubs.post_announcement', club_id=club.id) }}" class="stack card" style="margin-bottom:12px">
-      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-      <label>Title <input name="title" required maxlength="200"></label>
-      <label>Message <textarea name="body" required></textarea></label>
-      <button class="btn" type="submit">Post announcement</button>
-    </form>
-  {% endif %}
-  {% if club.announcements %}
-    <ul class="list">
-      {% for a in club.announcements %}
-        <li class="card">
-          <div class="row spread">
-            <strong>{{ a.title }}</strong>
-            <span class="muted">{{ a.created_at.strftime('%d %b %Y') }}{% if a.author %} · {{ a.author.name }}{% endif %}</span>
-          </div>
-          <p>{{ a.body }}</p>
-          {% if can_manage %}
-            <form method="post" action="{{ url_for('clubs.delete_announcement', club_id=club.id, announcement_id=a.id) }}">
-              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-              <button class="btn-link" type="submit" style="color:var(--danger)">Delete</button>
-            </form>
-          {% endif %}
-        </li>
-      {% endfor %}
-    </ul>
-  {% else %}
-    <p class="muted">No announcements yet.</p>
-  {% endif %}
-</section>
-{% endblock %}
+{% import "_macros.html" as ui with context %}
+{% block title %}{{ club.name }}{% endblock %}
 {% block content %}
-<p><a href="{{ url_for('clubs.directory') }}">&larr; All clubs</a></p>
+<a class="back-link" href="{{ url_for('clubs.directory') }}">{{ ui.icon("arrow-left", "icon-sm") }} All clubs</a>
 
-<div class="card">
-  <div class="row spread">
-    <div>
-      <span class="tag">{{ club.category }}</span>
-      <h1 style="margin:6px 0">{{ club.name }}</h1>
-      <p class="muted" style="margin:0">{{ club.member_count }} member{{ '' if club.member_count == 1 else 's' }}</p>
+<section class="card club-hero {{ ui.cat_class(club.category) }}">
+  <div class="club-hero-banner"></div>
+  <div class="club-hero-body">
+    <span class="club-avatar club-avatar-xl">{{ ui.initials(club.name) }}</span>
+    <div class="club-hero-info">
+      <div>{{ ui.category_badge(club.category) }}</div>
+      <h1>{{ club.name }}</h1>
+      <ul class="meta">
+        <li>{{ ui.icon("users") }} {{ ui.plural(club.member_count, 'member') }}</li>
+        <li>{{ ui.icon("calendar") }} {{ ui.plural(club.upcoming_events()|length, 'upcoming event') }}</li>
+        {% if membership %}
+          <li><span class="pill {{ 'pill-brand' if membership.role == 'admin' else 'pill-success' }}">{{ ui.icon("check") }} You're a {{ membership.role }}</span></li>
+        {% endif %}
+      </ul>
     </div>
-    <div class="row">
+    <div class="club-hero-actions">
       {% if current_user.is_authenticated %}
         {% if membership %}
-          <span class="muted">You're a {{ membership.role }}</span>
           <form method="post" action="{{ url_for('clubs.leave', club_id=club.id) }}">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-            <button class="btn btn-outline" type="submit">Leave</button>
+            {{ ui.csrf() }}
+            <button class="btn btn-secondary" type="submit">{{ ui.icon("logout", "icon-sm") }} Leave</button>
           </form>
         {% else %}
           <form method="post" action="{{ url_for('clubs.join', club_id=club.id) }}">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-            <button class="btn" type="submit">Join club</button>
+            {{ ui.csrf() }}
+            <button class="btn" type="submit">{{ ui.icon("user-plus", "icon-sm") }} Join club</button>
           </form>
         {% endif %}
       {% else %}
-        <a class="btn" href="{{ url_for('auth.login', next=request.path) }}">Log in to join</a>
+        <a class="btn" href="{{ url_for('auth.login', next=request.path) }}">{{ ui.icon("login", "icon-sm") }} Log in to join</a>
       {% endif %}
     </div>
   </div>
-  <p>{{ club.description }}</p>
+  <p class="club-hero-desc">{{ club.description or 'No description yet.' }}</p>
 
   {% if can_manage %}
-    <div class="row">
-      <a class="btn btn-outline" href="{{ url_for('clubs.edit', club_id=club.id) }}">Edit club</a>
-      <a class="btn btn-outline" href="{{ url_for('clubs.members', club_id=club.id) }}">Manage members</a>
-      <a class="btn btn-outline" href="{{ url_for('events.create', club_id=club.id) }}">New event</a>
+    <div class="admin-bar">
+      <span class="admin-bar-label">{{ ui.icon("shield", "icon-sm") }} Club admin</span>
+      <a class="btn btn-secondary btn-sm" href="{{ url_for('clubs.edit', club_id=club.id) }}">{{ ui.icon("edit", "icon-sm") }} Edit club</a>
+      <a class="btn btn-secondary btn-sm" href="{{ url_for('clubs.members', club_id=club.id) }}">{{ ui.icon("users", "icon-sm") }} Manage members</a>
+      <a class="btn btn-sm" href="{{ url_for('events.create', club_id=club.id) }}">{{ ui.icon("plus", "icon-sm") }} New event</a>
       {% if current_user.is_site_admin %}
         <form method="post" action="{{ url_for('clubs.delete', club_id=club.id) }}"
               onsubmit="return confirm('Delete this club and all its events?')">
-          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-          <button class="btn btn-danger" type="submit">Delete club</button>
+          {{ ui.csrf() }}
+          <button class="btn btn-danger btn-sm" type="submit">{{ ui.icon("trash", "icon-sm") }} Delete club</button>
         </form>
       {% endif %}
     </div>
   {% endif %}
+</section>
+
+<div class="two-col">
+  <section>
+    <div class="section-head">
+      <h2>Upcoming events</h2>
+    </div>
+    {% set upcoming = club.upcoming_events() %}
+    {% if upcoming %}
+      <div class="stack-list">
+        {% for event in upcoming %}{{ ui.event_card(event, show_club=False) }}{% endfor %}
+      </div>
+    {% else %}
+      {{ ui.empty_state("calendar", "No upcoming events", "This club hasn't scheduled anything yet. Check back soon.") }}
+    {% endif %}
+  </section>
+
+  <section>
+    <div class="section-head">
+      <h2>Announcements</h2>
+    </div>
+    {% if can_manage %}
+      <form method="post" action="{{ url_for('clubs.post_announcement', club_id=club.id) }}" class="card form-grid" style="margin-bottom: 16px">
+        {{ ui.csrf() }}
+        <label class="field">
+          <span class="field-label">Title</span>
+          <input name="title" required maxlength="200" placeholder="e.g. Meeting moved to Room 204">
+        </label>
+        <label class="field">
+          <span class="field-label">Message</span>
+          <textarea name="body" required placeholder="Share news with your members"></textarea>
+        </label>
+        <div><button class="btn" type="submit">{{ ui.icon("send", "icon-sm") }} Post announcement</button></div>
+      </form>
+    {% endif %}
+    {% if club.announcements %}
+      <ul class="stack-list">
+        {% for a in club.announcements %}{{ ui.announcement(a, can_delete=can_manage) }}{% endfor %}
+      </ul>
+    {% else %}
+      {{ ui.empty_state("megaphone", "No announcements yet", "Club news will appear here.") }}
+    {% endif %}
+  </section>
 </div>
-
-<section>
-  <h2>Upcoming events</h2>
-  {% set upcoming = club.upcoming_events() %}
-  {% if upcoming %}
-    <ul class="list">
-      {% for event in upcoming %}
-        <li class="card">
-          <a href="{{ url_for('events.detail', event_id=event.id) }}"><strong>{{ event.title }}</strong></a>
-          <div class="muted">
-            {{ event.starts_at.strftime('%a %d %b %Y, %H:%M') }} · {{ event.location or 'TBA' }} ·
-            {{ event.attendee_count }}{% if event.capacity %} / {{ event.capacity }}{% endif %} going
-          </div>
-        </li>
-      {% endfor %}
-    </ul>
-  {% else %}
-    <p class="muted">No upcoming events.</p>
-  {% endif %}
-</section>
-
-<section>
-  <h2>Announcements</h2>
-  {% if can_manage %}
-    <form method="post" action="{{ url_for('clubs.post_announcement', club_id=club.id) }}" class="stack card" style="margin-bottom:12px">
-      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-      <label>Title <input name="title" required maxlength="200"></label>
-      <label>Message <textarea name="body" required></textarea></label>
-      <button class="btn" type="submit">Post announcement</button>
-    </form>
-  {% endif %}
-  {% if club.announcements %}
-    <ul class="list">
-      {% for a in club.announcements %}
-        <li class="card">
-          <div class="row spread">
-            <strong>{{ a.title }}</strong>
-            <span class="muted">{{ a.created_at.strftime('%d %b %Y') }}{% if a.author %} · {{ a.author.name }}{% endif %}</span>
-          </div>
-          <p>{{ a.body }}</p>
-          {% if can_manage %}
-            <form method="post" action="{{ url_for('clubs.delete_announcement', club_id=club.id, announcement_id=a.id) }}">
-              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-              <button class="btn-link" type="submit" style="color:var(--danger)">Delete</button>
-            </form>
-          {% endif %}
-        </li>
-      {% endfor %}
-    </ul>
-  {% else %}
-    <p class="muted">No announcements yet.</p>
-  {% endif %}
-</section>
 {% endblock %}
