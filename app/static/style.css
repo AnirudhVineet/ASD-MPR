@@ -614,12 +614,25 @@ input[type="checkbox"] { width: 17px; height: 17px; padding: 0; accent-color: va
 }
 
 /* Error page */
-.error-page { max-width: 520px; margin: 40px auto 0; }
+.error-page {
+  max-width: 480px; margin: 48px auto 0; display: grid; justify-items: center;
+  gap: 28px; text-align: center;
+}
+.error-icon {
+  display: grid; place-items: center; width: 80px; height: 80px;
+  border-radius: 24px; background: var(--brand-soft); color: var(--brand);
+}
+.error-icon .icon { width: 36px; height: 36px; }
+.error-icon-403 { background: var(--warning-soft); color: var(--warning); }
+.error-icon-404 { background: var(--brand-soft); color: var(--brand); }
+.error-body { display: grid; gap: 12px; justify-items: center; }
 .error-code {
-  font-size: 4.5rem; font-weight: 900; letter-spacing: -.05em; line-height: 1;
+  font-size: 5rem; font-weight: 900; letter-spacing: -.05em; line-height: 1;
   background: linear-gradient(135deg, var(--hero-from), var(--hero-to));
   -webkit-background-clip: text; background-clip: text; color: transparent;
 }
+.error-desc { color: var(--muted); max-width: 26rem; font-size: .95rem; }
+.error-actions { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-top: 8px; }
 
 @media (max-width: 600px) {
   h1 { font-size: 1.55rem; }

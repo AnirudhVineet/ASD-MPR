@@ -1,15 +1,26 @@
 {% extends "base.html" %}
 {% import "_macros.html" as ui with context %}
-{% block title %}{{ code }}{% endblock %}
+{% block title %}{{ code }} · {{ title }}{% endblock %}
 {% block content %}
 <div class="error-page">
-  <div class="empty">
-    <div class="error-code">{{ code }}</div>
+  <div class="error-icon error-icon-{{ code }}">
+    {% if code == 403 %}
+      {{ ui.icon("lock", "icon-lg") }}
+    {% else %}
+      {{ ui.icon("compass", "icon-lg") }}
+    {% endif %}
+  </div>
+  <div class="error-body">
+    <span class="error-code">{{ code }}</span>
     <h1>{{ title }}</h1>
-    <p>{{ message }}</p>
-    <div class="hero-actions" style="margin-top: 8px">
-      <a class="btn" href="{{ url_for('main.index') }}">Back home</a>
-      <a class="btn btn-secondary" href="{{ url_for('clubs.directory') }}">Browse clubs</a>
+    <p class="error-desc">{{ message }}</p>
+    <div class="error-actions">
+      <a class="btn btn-lg" href="{{ url_for('main.index') }}">
+        {{ ui.icon("arrow-left", "icon-sm") }} Go home
+      </a>
+      <a class="btn btn-secondary btn-lg" href="{{ url_for('clubs.directory') }}">
+        {{ ui.icon("compass", "icon-sm") }} Browse clubs
+      </a>
     </div>
   </div>
 </div>
