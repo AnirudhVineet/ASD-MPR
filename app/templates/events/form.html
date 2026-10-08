@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Edit event' if event else 'New event' }}{% endblock %}
+{% block content %}
+<p><a href="{{ url_for('clubs.detail', club_id=club.id) }}">&larr; {{ club.name }}</a></p>
+<h1>{{ 'Edit event' if event else 'New event' }}</h1>
+<form method="post" class="stack card">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <label>Title <input name="title" value="{{ form.get('title', '') }}" required maxlength="200"></label>
+  <label>Starts at <input type="datetime-local" name="starts_at" value="{{ form.get('starts_at', '') }}" required></label>
+  <label>Location <input name="location" value="{{ form.get('location', '') }}" maxlength="200"></label>
+  <label>Capacity (leave blank for unlimited)
+    <input type="number" min="1" name="capacity" value="{{ form.get('capacity', '') }}">
+  </label>
+  <label>Description <textarea name="description">{{ form.get('description', '') }}</textarea></label>
+  <div class="row">
+    <button class="btn" type="submit">Save</button>
+    <a href="{{ url_for('events.detail', event_id=event.id) if event else url_for('clubs.detail', club_id=club.id) }}">Cancel</a>
+  </div>
+</form>
+{% endblock %}

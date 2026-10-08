@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block title %}{{ event.title }}{% endblock %}
+{% block content %}
+<p><a href="{{ url_for('clubs.detail', club_id=event.club_id) }}">&larr; {{ event.club.name }}</a></p>
+
+<div class="card">
+  <h1 style="margin-top:0">{{ event.title }}</h1>
+  <p class="muted">
+    {{ event.starts_at.strftime('%A %d %B %Y, %H:%M') }} · {{ event.location or 'Location TBA' }}<br>
+    {{ event.attendee_count }}{% if event.capacity %} / {{ event.capacity }}{% endif %} going
+    {% if is_past %}· <strong>Past event</strong>{% elif event.is_full %}· <strong>Full</strong>{% endif %}
+  </p>
+  <p>{{ event.description }}</p>
+
+  <div class="row">
+    {% if current_user.is_authenticated %}
+      {% if has_rsvp %}
+        <span class="tag">You're going</span>
+        {% if not is_past %}
+          <form method="post" action="{{ url_for('events.cancel_rsvp', event_id=event.id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button class="btn btn-outline" type="submit">Cancel RSVP</button>
+          </form>
+        {% endif %}
+      {% elif not is_past %}
+        {% if is_member %}
+          <form method="post" action="{{ url_for('events.rsvp', event_id=event.id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button class="btn" type="submit" {% if event.is_full %}disabled{% endif %}>RSVP</button>
+          </form>
+        {% else %}
+          <span class="muted">Join {{ event.club.name }} to RSVP.</span>
+        {% endif %}
+      {% endif %}
+    {% else %}
+      <a class="btn" href="{{ url_for('auth.login', next=request.path) }}">Log in to RSVP</a>
+    {% endif %}
+
+    {% if can_manage %}
+      <a class="btn btn-outline" href="{{ url_for('events.edit', event_id=event.id) }}">Edit</a>
+      <form method="post" action="{{ url_for('events.delete', event_id=event.id) }}"
+            onsubmit="return confirm('Delete this event?')">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button class="btn btn-danger" type="submit">Delete</button>
+      </form>
+    {% endif %}
+  </div>
+</div>
+
+{% if can_manage %}
+  <section>
+    <h2>Attendees ({{ event.attendee_count }})</h2>
+    {% if event.rsvps %}
+      <ul>
+        {% for r in event.rsvps %}
+          <li>{{ r.user.name }} <span class="muted">· {{ r.user.email }}</span></li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="muted">No RSVPs yet.</p>
+    {% endif %}
+  </section>
+{% endif %}
+{% endblock %}

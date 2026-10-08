@@ -26,7 +26,7 @@
     <ul class="list">
       {% for event in events %}
         <li class="card">
-          <strong>{{ event.title }}</strong> <span class="muted">· {{ event.club.name }}</span>
+          <a href="{{ url_for('events.detail', event_id=event.id) }}"><strong>{{ event.title }}</strong></a> <span class="muted">· {{ event.club.name }}</span>
           <div class="muted">{{ event.starts_at.strftime('%a %d %b %Y, %H:%M') }}{% if event.has_rsvp(current_user) %} · You're going{% endif %}</div>
         </li>
       {% endfor %}

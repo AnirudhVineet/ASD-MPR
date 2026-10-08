@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Events{% endblock %}
+{% block content %}
+<h1>Upcoming events</h1>
+{% if events %}
+  <ul class="list">
+    {% for event in events %}
+      <li class="card">
+        <div class="row spread">
+          <div>
+            <a href="{{ url_for('events.detail', event_id=event.id) }}"><strong>{{ event.title }}</strong></a>
+            <span class="muted">· <a href="{{ url_for('clubs.detail', club_id=event.club_id) }}">{{ event.club.name }}</a></span>
+            <div class="muted">{{ event.starts_at.strftime('%a %d %b %Y, %H:%M') }} · {{ event.location or 'TBA' }}</div>
+          </div>
+          <span class="muted">
+            {{ event.attendee_count }}{% if event.capacity %} / {{ event.capacity }}{% endif %} going
+          </span>
+        </div>
+      </li>
+    {% endfor %}
+  </ul>
+{% else %}
+  <p class="muted">No upcoming events.</p>
+{% endif %}
+{% endblock %}

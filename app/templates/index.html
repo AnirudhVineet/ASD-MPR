@@ -12,7 +12,7 @@
     <ul class="list">
       {% for event in upcoming %}
         <li class="card">
-          <strong>{{ event.title }}</strong>
+          <a href="{{ url_for('events.detail', event_id=event.id) }}"><strong>{{ event.title }}</strong></a>
           <span class="muted">· {{ event.club.name }}</span>
           <div class="muted">{{ event.starts_at.strftime('%a %d %b %Y, %H:%M') }} · {{ event.location or 'TBA' }}</div>
         </li>

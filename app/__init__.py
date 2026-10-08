@@ -26,11 +26,13 @@ def create_app(config_object=Config) -> Flask:
     from .auth import bp as auth_bp
     from .cli import register_cli
     from .clubs import bp as clubs_bp
+    from .events import bp as events_bp
     from .main import bp as main_bp
 
     app.register_blueprint(main_bp)
     app.register_blueprint(auth_bp)
     app.register_blueprint(clubs_bp)
+    app.register_blueprint(events_bp)
     register_cli(app)
 
     for code, (title, message) in ERRORS.items():

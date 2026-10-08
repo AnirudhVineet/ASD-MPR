@@ -4,7 +4,7 @@ from flask_login import current_user, login_required
 from . import metrics
 from .auth import site_admin_required
 from .extensions import db
-from .models import ROLE_ADMIN, ROLE_MEMBER, Club, Membership, User
+from .models import ROLE_ADMIN, ROLE_MEMBER, Announcement, Club, Membership, User
 
 bp = Blueprint("clubs", __name__, url_prefix="/clubs")
 
@@ -212,3 +212,35 @@ def set_role(club_id, user_id):
     db.session.commit()
     flash(f"{membership.user.name} is now a club {role}.", "success")
     return redirect(url_for("clubs.members", club_id=club.id))
+
+
+@bp.route("/<int:club_id>/announcements", methods=["POST"])
+@login_required
+def post_announcement(club_id):
+    club = get_club_or_404(club_id)
+    require_manager(club)
+    title = request.form.get("title", "").strip()
+    body = request.form.get("body", "").strip()
+    if not title or not body:
+        flash("Announcements need a title and a message.", "error")
+    else:
+        db.session.add(
+            Announcement(club_id=club.id, author_id=current_user.id, title=title, body=body)
+        )
+        db.session.commit()
+        flash("Announcement posted.", "success")
+    return redirect(url_for("clubs.detail", club_id=club.id))
+
+
+@bp.route("/<int:club_id>/announcements/<int:announcement_id>/delete", methods=["POST"])
+@login_required
+def delete_announcement(club_id, announcement_id):
+    club = get_club_or_404(club_id)
+    require_manager(club)
+    announcement = Announcement.query.filter_by(id=announcement_id, club_id=club.id).first()
+    if announcement is None:
+        abort(404)
+    db.session.delete(announcement)
+    db.session.commit()
+    flash("Announcement deleted.", "info")
+    return redirect(url_for("clubs.detail", club_id=club_id))

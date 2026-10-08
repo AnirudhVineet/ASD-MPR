@@ -1,5 +1,58 @@
 {% extends "base.html" %}
-{% block title %}{{ club.name }}{% endblock %}
+{% block title %}{{ club.name }}
+<section>
+  <h2>Upcoming events</h2>
+  {% set upcoming = club.upcoming_events() %}
+  {% if upcoming %}
+    <ul class="list">
+      {% for event in upcoming %}
+        <li class="card">
+          <a href="{{ url_for('events.detail', event_id=event.id) }}"><strong>{{ event.title }}</strong></a>
+          <div class="muted">
+            {{ event.starts_at.strftime('%a %d %b %Y, %H:%M') }} · {{ event.location or 'TBA' }} ·
+            {{ event.attendee_count }}{% if event.capacity %} / {{ event.capacity }}{% endif %} going
+          </div>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p class="muted">No upcoming events.</p>
+  {% endif %}
+</section>
+
+<section>
+  <h2>Announcements</h2>
+  {% if can_manage %}
+    <form method="post" action="{{ url_for('clubs.post_announcement', club_id=club.id) }}" class="stack card" style="margin-bottom:12px">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <label>Title <input name="title" required maxlength="200"></label>
+      <label>Message <textarea name="body" required></textarea></label>
+      <button class="btn" type="submit">Post announcement</button>
+    </form>
+  {% endif %}
+  {% if club.announcements %}
+    <ul class="list">
+      {% for a in club.announcements %}
+        <li class="card">
+          <div class="row spread">
+            <strong>{{ a.title }}</strong>
+            <span class="muted">{{ a.created_at.strftime('%d %b %Y') }}{% if a.author %} · {{ a.author.name }}{% endif %}</span>
+          </div>
+          <p>{{ a.body }}</p>
+          {% if can_manage %}
+            <form method="post" action="{{ url_for('clubs.delete_announcement', club_id=club.id, announcement_id=a.id) }}">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button class="btn-link" type="submit" style="color:var(--danger)">Delete</button>
+            </form>
+          {% endif %}
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p class="muted">No announcements yet.</p>
+  {% endif %}
+</section>
+{% endblock %}
 {% block content %}
 <p><a href="{{ url_for('clubs.directory') }}">&larr; All clubs</a></p>
 
@@ -35,6 +88,7 @@
     <div class="row">
       <a class="btn btn-outline" href="{{ url_for('clubs.edit', club_id=club.id) }}">Edit club</a>
       <a class="btn btn-outline" href="{{ url_for('clubs.members', club_id=club.id) }}">Manage members</a>
+      <a class="btn btn-outline" href="{{ url_for('events.create', club_id=club.id) }}">New event</a>
       {% if current_user.is_site_admin %}
         <form method="post" action="{{ url_for('clubs.delete', club_id=club.id) }}"
               onsubmit="return confirm('Delete this club and all its events?')">
@@ -45,4 +99,57 @@
     </div>
   {% endif %}
 </div>
+
+<section>
+  <h2>Upcoming events</h2>
+  {% set upcoming = club.upcoming_events() %}
+  {% if upcoming %}
+    <ul class="list">
+      {% for event in upcoming %}
+        <li class="card">
+          <a href="{{ url_for('events.detail', event_id=event.id) }}"><strong>{{ event.title }}</strong></a>
+          <div class="muted">
+            {{ event.starts_at.strftime('%a %d %b %Y, %H:%M') }} · {{ event.location or 'TBA' }} ·
+            {{ event.attendee_count }}{% if event.capacity %} / {{ event.capacity }}{% endif %} going
+          </div>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p class="muted">No upcoming events.</p>
+  {% endif %}
+</section>
+
+<section>
+  <h2>Announcements</h2>
+  {% if can_manage %}
+    <form method="post" action="{{ url_for('clubs.post_announcement', club_id=club.id) }}" class="stack card" style="margin-bottom:12px">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <label>Title <input name="title" required maxlength="200"></label>
+      <label>Message <textarea name="body" required></textarea></label>
+      <button class="btn" type="submit">Post announcement</button>
+    </form>
+  {% endif %}
+  {% if club.announcements %}
+    <ul class="list">
+      {% for a in club.announcements %}
+        <li class="card">
+          <div class="row spread">
+            <strong>{{ a.title }}</strong>
+            <span class="muted">{{ a.created_at.strftime('%d %b %Y') }}{% if a.author %} · {{ a.author.name }}{% endif %}</span>
+          </div>
+          <p>{{ a.body }}</p>
+          {% if can_manage %}
+            <form method="post" action="{{ url_for('clubs.delete_announcement', club_id=club.id, announcement_id=a.id) }}">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button class="btn-link" type="submit" style="color:var(--danger)">Delete</button>
+            </form>
+          {% endif %}
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p class="muted">No announcements yet.</p>
+  {% endif %}
+</section>
 {% endblock %}
