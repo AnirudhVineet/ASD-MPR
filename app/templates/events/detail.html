@@ -1,63 +1,102 @@
 {% extends "base.html" %}
+{% import "_macros.html" as ui with context %}
 {% block title %}{{ event.title }}{% endblock %}
 {% block content %}
-<p><a href="{{ url_for('clubs.detail', club_id=event.club_id) }}">&larr; {{ event.club.name }}</a></p>
+<a class="back-link" href="{{ url_for('clubs.detail', club_id=event.club_id) }}">{{ ui.icon("arrow-left", "icon-sm") }} {{ event.club.name }}</a>
 
-<div class="card">
-  <h1 style="margin-top:0">{{ event.title }}</h1>
-  <p class="muted">
-    {{ event.starts_at.strftime('%A %d %B %Y, %H:%M') }} · {{ event.location or 'Location TBA' }}<br>
-    {{ event.attendee_count }}{% if event.capacity %} / {{ event.capacity }}{% endif %} going
-    {% if is_past %}· <strong>Past event</strong>{% elif event.is_full %}· <strong>Full</strong>{% endif %}
-  </p>
-  <p>{{ event.description }}</p>
+<div class="event-layout {{ ui.cat_class(event.club.category) }}">
+  <article class="card">
+    <div class="event-header">
+      {{ ui.date_badge(event.starts_at, "date-badge-lg") }}
+      <div>
+        <a href="{{ url_for('clubs.detail', club_id=event.club_id) }}"><span class="badge badge-dot">{{ event.club.name }}</span></a>
+        <h1>{{ event.title }}</h1>
+        <div class="event-pills">
+          {% if is_past %}<span class="pill">Past event</span>
+          {% elif event.is_full %}<span class="pill pill-danger">Full</span>
+          {% else %}<span class="pill pill-success">Open for RSVPs</span>{% endif %}
+          {% if has_rsvp %}<span class="pill pill-success">{{ ui.icon("check") }} You're going</span>{% endif %}
+        </div>
+      </div>
+    </div>
+    <p class="event-description">{{ event.description or 'No description provided.' }}</p>
+  </article>
 
-  <div class="row">
-    {% if current_user.is_authenticated %}
-      {% if has_rsvp %}
-        <span class="tag">You're going</span>
-        {% if not is_past %}
-          <form method="post" action="{{ url_for('events.cancel_rsvp', event_id=event.id) }}">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-            <button class="btn btn-outline" type="submit">Cancel RSVP</button>
-          </form>
-        {% endif %}
-      {% elif not is_past %}
-        {% if is_member %}
-          <form method="post" action="{{ url_for('events.rsvp', event_id=event.id) }}">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-            <button class="btn" type="submit" {% if event.is_full %}disabled{% endif %}>RSVP</button>
-          </form>
+  <aside class="card">
+    <ul class="detail-list">
+      <li>
+        <span class="detail-icon">{{ ui.icon("calendar") }}</span>
+        <div><strong>{{ event.starts_at.strftime('%A %d %B %Y') }}</strong><span>Date</span></div>
+      </li>
+      <li>
+        <span class="detail-icon">{{ ui.icon("clock") }}</span>
+        <div><strong>{{ event.starts_at.strftime('%H:%M') }}</strong><span>Start time</span></div>
+      </li>
+      <li>
+        <span class="detail-icon">{{ ui.icon("pin") }}</span>
+        <div><strong>{{ event.location or 'Location TBA' }}</strong><span>Location</span></div>
+      </li>
+    </ul>
+    {{ ui.capacity(event) }}
+
+    <div class="action-stack" style="margin-top: 20px">
+      {% if current_user.is_authenticated %}
+        {% if has_rsvp %}
+          {% if not is_past %}
+            <form method="post" action="{{ url_for('events.cancel_rsvp', event_id=event.id) }}">
+              {{ ui.csrf() }}
+              <button class="btn btn-secondary btn-block" type="submit">Cancel RSVP</button>
+            </form>
+          {% endif %}
+        {% elif not is_past %}
+          {% if is_member %}
+            <form method="post" action="{{ url_for('events.rsvp', event_id=event.id) }}">
+              {{ ui.csrf() }}
+              <button class="btn btn-lg btn-block" type="submit" {% if event.is_full %}disabled{% endif %}>
+                {{ ui.icon("ticket") }} {{ 'Event is full' if event.is_full else 'RSVP' }}
+              </button>
+            </form>
+          {% else %}
+            <div class="action-note">{{ ui.icon("lock", "icon-sm") }} Join {{ event.club.name }} to RSVP.</div>
+            <a class="btn btn-secondary btn-block" href="{{ url_for('clubs.detail', club_id=event.club_id) }}">View club</a>
+          {% endif %}
         {% else %}
-          <span class="muted">Join {{ event.club.name }} to RSVP.</span>
+          <div class="action-note">{{ ui.icon("info", "icon-sm") }} This event has already taken place.</div>
         {% endif %}
+      {% else %}
+        <a class="btn btn-lg btn-block" href="{{ url_for('auth.login', next=request.path) }}">{{ ui.icon("login") }} Log in to RSVP</a>
       {% endif %}
-    {% else %}
-      <a class="btn" href="{{ url_for('auth.login', next=request.path) }}">Log in to RSVP</a>
-    {% endif %}
+    </div>
 
     {% if can_manage %}
-      <a class="btn btn-outline" href="{{ url_for('events.edit', event_id=event.id) }}">Edit</a>
-      <form method="post" action="{{ url_for('events.delete', event_id=event.id) }}"
-            onsubmit="return confirm('Delete this event?')">
-        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-        <button class="btn btn-danger" type="submit">Delete</button>
-      </form>
+      <div class="manage-row">
+        <a class="btn btn-secondary btn-sm" href="{{ url_for('events.edit', event_id=event.id) }}">{{ ui.icon("edit", "icon-sm") }} Edit</a>
+        <form method="post" action="{{ url_for('events.delete', event_id=event.id) }}"
+              onsubmit="return confirm('Delete this event?')">
+          {{ ui.csrf() }}
+          <button class="btn btn-danger btn-sm" type="submit">{{ ui.icon("trash", "icon-sm") }} Delete</button>
+        </form>
+      </div>
     {% endif %}
-  </div>
+  </aside>
 </div>
 
 {% if can_manage %}
-  <section>
-    <h2>Attendees ({{ event.attendee_count }})</h2>
+  <section class="section">
+    <div class="section-head">
+      <h2>Attendees <span class="count">{{ event.attendee_count }}</span></h2>
+    </div>
     {% if event.rsvps %}
-      <ul>
+      <ul class="people-grid">
         {% for r in event.rsvps %}
-          <li>{{ r.user.name }} <span class="muted">· {{ r.user.email }}</span></li>
+          <li class="card person">
+            {{ ui.avatar(r.user.name) }}
+            <div class="person-text"><strong>{{ r.user.name }}</strong><span>{{ r.user.email }}</span></div>
+          </li>
         {% endfor %}
       </ul>
     {% else %}
-      <p class="muted">No RSVPs yet.</p>
+      {{ ui.empty_state("users", "No RSVPs yet", "Members who RSVP will be listed here.") }}
     {% endif %}
   </section>
 {% endif %}

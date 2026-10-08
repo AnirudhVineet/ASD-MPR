@@ -1,0 +1,159 @@
+{# Shared UI components. Import with: {% import "_macros.html" as ui with context %} #}
+
+{% macro icon(name, cls="") -%}
+{%- set paths = {
+  "cap": '<path d="M22 10 12 5 2 10l10 5 10-5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/>',
+  "calendar": '<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>',
+  "clock": '<circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>',
+  "pin": '<path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/>',
+  "users": '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>',
+  "user-plus": '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6M22 11h-6"/>',
+  "search": '<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>',
+  "megaphone": '<path d="m3 11 18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/>',
+  "plus": '<path d="M12 5v14M5 12h14"/>',
+  "edit": '<path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/>',
+  "trash": '<path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>',
+  "arrow-left": '<path d="M19 12H5M12 19l-7-7 7-7"/>',
+  "arrow-right": '<path d="M5 12h14M12 5l7 7-7 7"/>',
+  "check": '<path d="M20 6 9 17l-5-5"/>',
+  "check-circle": '<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="M22 4 12 14.01l-3-3"/>',
+  "alert": '<circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/>',
+  "info": '<circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/>',
+  "logout": '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/>',
+  "login": '<path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M15 12H3"/>',
+  "menu": '<path d="M4 6h16M4 12h16M4 18h16"/>',
+  "x": '<path d="M18 6 6 18M6 6l12 12"/>',
+  "compass": '<circle cx="12" cy="12" r="10"/><path d="m16.24 7.76-2.12 6.36-6.36 2.12 2.12-6.36 6.36-2.12z"/>',
+  "ticket": '<path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/><path d="M13 5v2M13 17v2M13 11v2"/>',
+  "shield": '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>',
+  "grid": '<rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/>',
+  "send": '<path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/>',
+  "sparkles": '<path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"/>',
+  "lock": '<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>',
+} -%}
+<svg class="icon {{ cls }}" viewBox="0 0 24 24" aria-hidden="true">{{ paths[name]|safe }}</svg>
+{%- endmacro %}
+
+{% macro cat_class(category) -%}
+cat-{{ category|lower|replace(' & ', '-')|replace(' ', '-') }}
+{%- endmacro %}
+
+{% macro initials(name) -%}
+{%- set parts = name.split() -%}
+{{ ((parts[0][0] if parts else '?') ~ (parts[1][0] if parts|length > 1 else ''))|upper }}
+{%- endmacro %}
+
+{% macro avatar(name, size="") -%}
+<span class="avatar {{ size }} av-{{ name|length % 6 }}" aria-hidden="true">{{ initials(name) }}</span>
+{%- endmacro %}
+
+{% macro category_badge(category) -%}
+<span class="badge badge-dot {{ cat_class(category) }}">{{ category }}</span>
+{%- endmacro %}
+
+{% macro plural(count, word) -%}
+{{ count }} {{ word }}{{ '' if count == 1 else 's' }}
+{%- endmacro %}
+
+{% macro csrf() -%}
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+{%- endmacro %}
+
+{% macro club_card(club, role=None) %}
+<a class="club-card {{ cat_class(club.category) }}" href="{{ url_for('clubs.detail', club_id=club.id) }}">
+  <div class="club-banner"></div>
+  <div class="club-body">
+    <div class="club-body-top">
+      <span class="club-avatar">{{ initials(club.name) }}</span>
+      {{ category_badge(club.category) }}
+    </div>
+    <h3>{{ club.name }}</h3>
+    <p class="club-desc">{{ club.description|truncate(100) if club.description else 'No description yet.' }}</p>
+    <div class="club-meta">
+      {{ icon("users", "icon-sm") }} {{ plural(club.member_count, 'member') }}
+      {% if role %}<span class="pill {{ 'pill-brand' if role == 'admin' else '' }} role">{{ role|capitalize }}</span>{% endif %}
+    </div>
+  </div>
+</a>
+{% endmacro %}
+
+{% macro date_badge(dt, size="") -%}
+<div class="date-badge {{ size }}" aria-hidden="true">
+  <span class="m">{{ dt.strftime('%b') }}</span>
+  <span class="d">{{ dt.strftime('%d') }}</span>
+  <span class="w">{{ dt.strftime('%a') }}</span>
+</div>
+{%- endmacro %}
+
+{% macro capacity(event) -%}
+{% if event.capacity %}
+  {% set pct = [100, (event.attendee_count * 100 / event.capacity)|round|int]|min %}
+  <div class="capacity">
+    <div class="capacity-label">
+      <span>{{ event.attendee_count }} / {{ event.capacity }} going</span>
+      {% set left = [event.capacity - event.attendee_count, 0]|max %}
+      <span>{{ left }} spot{{ '' if left == 1 else 's' }} left</span>
+    </div>
+    <div class="capacity-bar {{ 'is-full' if event.is_full else '' }}"><span style="--p: {{ pct }}%"></span></div>
+  </div>
+{% else %}
+  <div class="capacity-label"><span>{{ event.attendee_count }} going</span><span>Open to all members</span></div>
+{% endif %}
+{%- endmacro %}
+
+{% macro event_card(event, show_club=True) %}
+{% set going = current_user.is_authenticated and event.has_rsvp(current_user) %}
+<article class="event-card {{ cat_class(event.club.category) }}">
+  {{ date_badge(event.starts_at) }}
+  <div class="event-body">
+    <h3><a href="{{ url_for('events.detail', event_id=event.id) }}">{{ event.title }}</a></h3>
+    {% if show_club %}
+      <div class="event-club"><a class="raise" href="{{ url_for('clubs.detail', club_id=event.club_id) }}">{{ event.club.name }}</a></div>
+    {% endif %}
+    <ul class="meta">
+      <li>{{ icon("clock") }} {{ event.starts_at.strftime('%H:%M') }}</li>
+      <li>{{ icon("pin") }} {{ event.location or 'TBA' }}</li>
+      {% if not event.capacity %}<li>{{ icon("users") }} {{ event.attendee_count }} going</li>{% endif %}
+    </ul>
+    {% if event.capacity %}{{ capacity(event) }}{% endif %}
+    {% if going or event.is_full %}
+      <div class="event-pills">
+        {% if going %}<span class="pill pill-success">{{ icon("check") }} You're going</span>{% endif %}
+        {% if event.is_full %}<span class="pill pill-danger">Full</span>{% endif %}
+      </div>
+    {% endif %}
+  </div>
+</article>
+{% endmacro %}
+
+{% macro empty_state(icon_name, title, text, action_url=None, action_label=None) %}
+<div class="empty">
+  <div class="empty-icon">{{ icon(icon_name) }}</div>
+  <h3>{{ title }}</h3>
+  <p>{{ text }}</p>
+  {% if action_url %}<a class="btn btn-secondary btn-sm" href="{{ action_url }}">{{ action_label }}</a>{% endif %}
+</div>
+{% endmacro %}
+
+{% macro announcement(a, show_club=False, can_delete=False) %}
+<li class="card announcement">
+  <div class="announcement-head">
+    <div>
+      <h3>{{ a.title }}</h3>
+      <div class="announcement-meta">
+        {% if show_club %}<span class="announcement-club">{{ a.club.name }}</span> ·{% endif %}
+        {% if a.author %}{{ avatar(a.author.name, "avatar-sm") }} {{ a.author.name }} ·{% endif %}
+        {{ a.created_at.strftime('%d %b %Y') }}
+      </div>
+    </div>
+    {% if can_delete %}
+      <form class="inline-form" method="post" action="{{ url_for('clubs.delete_announcement', club_id=a.club_id, announcement_id=a.id) }}"
+            onsubmit="return confirm('Delete this announcement?')">
+        {{ csrf() }}
+        <button class="btn btn-danger-ghost btn-sm" type="submit" title="Delete announcement">{{ icon("trash", "icon-sm") }}<span class="sr-only">Delete</span></button>
+      </form>
+    {% endif %}
+  </div>
+  <p class="announcement-body">{{ a.body }}</p>
+</li>
+{% endmacro %}

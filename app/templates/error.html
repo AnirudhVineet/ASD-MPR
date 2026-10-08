@@ -1,7 +1,16 @@
 {% extends "base.html" %}
+{% import "_macros.html" as ui with context %}
 {% block title %}{{ code }}{% endblock %}
 {% block content %}
-<h1>{{ code }} · {{ title }}</h1>
-<p class="muted">{{ message }}</p>
-<p><a class="btn btn-outline" href="{{ url_for('main.index') }}">Back home</a></p>
+<div class="error-page">
+  <div class="empty">
+    <div class="error-code">{{ code }}</div>
+    <h1>{{ title }}</h1>
+    <p>{{ message }}</p>
+    <div class="hero-actions" style="margin-top: 8px">
+      <a class="btn" href="{{ url_for('main.index') }}">Back home</a>
+      <a class="btn btn-secondary" href="{{ url_for('clubs.directory') }}">Browse clubs</a>
+    </div>
+  </div>
+</div>
 {% endblock %}

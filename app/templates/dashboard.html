@@ -1,54 +1,69 @@
 {% extends "base.html" %}
+{% import "_macros.html" as ui with context %}
 {% block title %}Dashboard{% endblock %}
 {% block content %}
-<h1>Hi, {{ current_user.name }}</h1>
+<div class="welcome">
+  {{ ui.avatar(current_user.name) }}
+  <div>
+    <h1>Hi, {{ current_user.name }}</h1>
+    <p class="muted">Here's what's happening in your clubs.</p>
+  </div>
+</div>
 
-<section>
-  <h2>My clubs</h2>
+<div class="stats">
+  <div class="card stat stat-1">
+    <span class="stat-icon">{{ ui.icon("users") }}</span>
+    <div><div class="stat-value">{{ memberships|length }}</div><div class="stat-label">My clubs</div></div>
+  </div>
+  <div class="card stat stat-2">
+    <span class="stat-icon">{{ ui.icon("calendar") }}</span>
+    <div><div class="stat-value">{{ events|length }}</div><div class="stat-label">Upcoming events</div></div>
+  </div>
+  <div class="card stat stat-3">
+    <span class="stat-icon">{{ ui.icon("megaphone") }}</span>
+    <div><div class="stat-value">{{ announcements|length }}</div><div class="stat-label">Recent announcements</div></div>
+  </div>
+</div>
+
+<section class="section">
+  <div class="section-head">
+    <h2>My clubs</h2>
+    <a class="section-link" href="{{ url_for('clubs.directory') }}">Find more clubs {{ ui.icon("arrow-right", "icon-sm") }}</a>
+  </div>
   {% if memberships %}
-    <div class="grid">
-      {% for m in memberships %}
-        <div class="card">
-          <span class="tag">{{ m.club.category }}</span>
-          <h3><a href="{{ url_for('clubs.detail', club_id=m.club.id) }}">{{ m.club.name }}</a></h3>
-          <p class="muted">{{ m.role|capitalize }}</p>
-        </div>
-      {% endfor %}
+    <div class="grid-clubs">
+      {% for m in memberships %}{{ ui.club_card(m.club, role=m.role) }}{% endfor %}
     </div>
   {% else %}
-    <p class="muted">You haven't joined any clubs yet.</p>
+    {{ ui.empty_state("compass", "You haven't joined any clubs yet", "Explore the directory and join a club to see its events and news here.", url_for('clubs.directory'), "Explore clubs") }}
   {% endif %}
 </section>
 
-<section>
-  <h2>Upcoming events in my clubs</h2>
-  {% if events %}
-    <ul class="list">
-      {% for event in events %}
-        <li class="card">
-          <a href="{{ url_for('events.detail', event_id=event.id) }}"><strong>{{ event.title }}</strong></a> <span class="muted">· {{ event.club.name }}</span>
-          <div class="muted">{{ event.starts_at.strftime('%a %d %b %Y, %H:%M') }}{% if event.has_rsvp(current_user) %} · You're going{% endif %}</div>
-        </li>
-      {% endfor %}
-    </ul>
-  {% else %}
-    <p class="muted">Nothing scheduled.</p>
-  {% endif %}
-</section>
+<div class="two-col">
+  <section>
+    <div class="section-head">
+      <h2>Upcoming events in my clubs</h2>
+    </div>
+    {% if events %}
+      <div class="stack-list">
+        {% for event in events %}{{ ui.event_card(event) }}{% endfor %}
+      </div>
+    {% else %}
+      {{ ui.empty_state("calendar", "Nothing scheduled", "Events from your clubs will appear here.") }}
+    {% endif %}
+  </section>
 
-<section>
-  <h2>Latest announcements</h2>
-  {% if announcements %}
-    <ul class="list">
-      {% for a in announcements %}
-        <li class="card">
-          <strong>{{ a.title }}</strong> <span class="muted">· {{ a.club.name }} · {{ a.created_at.strftime('%d %b %Y') }}</span>
-          <p>{{ a.body }}</p>
-        </li>
-      {% endfor %}
-    </ul>
-  {% else %}
-    <p class="muted">No announcements yet.</p>
-  {% endif %}
-</section>
+  <section>
+    <div class="section-head">
+      <h2>Latest announcements</h2>
+    </div>
+    {% if announcements %}
+      <ul class="stack-list">
+        {% for a in announcements %}{{ ui.announcement(a, show_club=True) }}{% endfor %}
+      </ul>
+    {% else %}
+      {{ ui.empty_state("megaphone", "No announcements yet", "News from your clubs will show up here.") }}
+    {% endif %}
+  </section>
+</div>
 {% endblock %}

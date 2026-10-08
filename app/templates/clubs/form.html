@@ -1,26 +1,47 @@
 {% extends "base.html" %}
+{% import "_macros.html" as ui with context %}
 {% block title %}{{ 'Edit club' if club else 'New club' }}{% endblock %}
 {% block content %}
-<h1>{{ 'Edit ' ~ club.name if club else 'New club' }}</h1>
-<form method="post" class="stack card">
-  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-  <label>Name <input name="name" value="{{ form.get('name', '') }}" required maxlength="120"></label>
-  <label>Category
-    <select name="category" required>
-      {% for c in categories %}
-        <option value="{{ c }}" {% if c == form.get('category') %}selected{% endif %}>{{ c }}</option>
-      {% endfor %}
-    </select>
+{% set back = url_for('clubs.detail', club_id=club.id) if club else url_for('clubs.directory') %}
+<a class="back-link" href="{{ back }}">{{ ui.icon("arrow-left", "icon-sm") }} {{ club.name if club else 'All clubs' }}</a>
+
+<div class="page-head">
+  <div>
+    <h1>{{ 'Edit ' ~ club.name if club else 'New club' }}</h1>
+    <p class="muted">{{ 'Update how this club appears in the directory.' if club else 'Add a club to the campus directory.' }}</p>
+  </div>
+</div>
+
+<form method="post" class="card form-card form-grid">
+  {{ ui.csrf() }}
+  <div class="form-row">
+    <label class="field">
+      <span class="field-label">Name</span>
+      <input name="name" value="{{ form.get('name', '') }}" required maxlength="120" placeholder="e.g. Robotics Club">
+    </label>
+    <label class="field">
+      <span class="field-label">Category</span>
+      <select name="category" required>
+        {% for c in categories %}
+          <option value="{{ c }}" {% if c == form.get('category') %}selected{% endif %}>{{ c }}</option>
+        {% endfor %}
+      </select>
+    </label>
+  </div>
+  <label class="field">
+    <span class="field-label">Description</span>
+    <textarea name="description" placeholder="What does the club do? When does it meet?">{{ form.get('description', '') }}</textarea>
   </label>
-  <label>Description <textarea name="description">{{ form.get('description', '') }}</textarea></label>
   {% if not club %}
-    <label>Club admin email (optional)
-      <input type="email" name="admin_email" value="{{ form.get('admin_email', '') }}" placeholder="Must be a registered user">
+    <label class="field">
+      <span class="field-label">Club admin email <span class="optional">(optional)</span></span>
+      <input type="email" name="admin_email" value="{{ form.get('admin_email', '') }}" placeholder="student@college.edu">
+      <span class="hint">Must belong to a registered user. They'll be able to manage this club.</span>
     </label>
   {% endif %}
-  <div class="row">
-    <button class="btn" type="submit">Save</button>
-    <a href="{{ url_for('clubs.detail', club_id=club.id) if club else url_for('clubs.directory') }}">Cancel</a>
+  <div class="form-actions">
+    <a class="btn btn-ghost" href="{{ back }}">Cancel</a>
+    <button class="btn" type="submit">{{ ui.icon("check", "icon-sm") }} Save</button>
   </div>
 </form>
 {% endblock %}

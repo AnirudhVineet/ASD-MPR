@@ -1,13 +1,33 @@
 {% extends "base.html" %}
+{% import "_macros.html" as ui with context %}
 {% block title %}Register{% endblock %}
+{% block body_class %}auth-page{% endblock %}
 {% block content %}
-<h1>Create an account</h1>
-<form method="post" class="stack card">
-  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-  <label>Full name <input name="name" value="{{ name or '' }}" required></label>
-  <label>College email <input type="email" name="email" value="{{ email or '' }}" required></label>
-  <label>Password <input type="password" name="password" minlength="8" required></label>
-  <button class="btn" type="submit">Register</button>
-  <p class="muted">Already have an account? <a href="{{ url_for('auth.login') }}">Log in</a></p>
-</form>
+<div class="auth-wrap">
+  <div class="card auth-card">
+    <div class="auth-head">
+      <span class="brand-mark">{{ ui.icon("cap") }}</span>
+      <h1>Create an account</h1>
+      <p class="muted">Join clubs, RSVP to events and get club news.</p>
+    </div>
+    <form method="post" class="form-grid">
+      {{ ui.csrf() }}
+      <label class="field">
+        <span class="field-label">Full name</span>
+        <input name="name" value="{{ name or '' }}" required autocomplete="name" placeholder="Alex Johnson">
+      </label>
+      <label class="field">
+        <span class="field-label">College email</span>
+        <input type="email" name="email" value="{{ email or '' }}" required autocomplete="email" placeholder="you@college.edu">
+      </label>
+      <label class="field">
+        <span class="field-label">Password</span>
+        <input type="password" name="password" minlength="8" required autocomplete="new-password">
+        <span class="hint">At least 8 characters.</span>
+      </label>
+      <button class="btn btn-lg btn-block" type="submit">Register</button>
+    </form>
+    <p class="auth-foot">Already have an account? <a href="{{ url_for('auth.login') }}">Log in</a></p>
+  </div>
+</div>
 {% endblock %}

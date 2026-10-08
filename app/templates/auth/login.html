@@ -1,13 +1,29 @@
 {% extends "base.html" %}
+{% import "_macros.html" as ui with context %}
 {% block title %}Log in{% endblock %}
+{% block body_class %}auth-page{% endblock %}
 {% block content %}
-<h1>Log in</h1>
-<form method="post" class="stack card">
-  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-  <label>Email <input type="email" name="email" value="{{ email or '' }}" required></label>
-  <label>Password <input type="password" name="password" required></label>
-  <label class="row"><input type="checkbox" name="remember" style="width:auto"> Remember me</label>
-  <button class="btn" type="submit">Log in</button>
-  <p class="muted">New here? <a href="{{ url_for('auth.register') }}">Create an account</a></p>
-</form>
+<div class="auth-wrap">
+  <div class="card auth-card">
+    <div class="auth-head">
+      <span class="brand-mark">{{ ui.icon("cap") }}</span>
+      <h1>Welcome back</h1>
+      <p class="muted">Log in to manage your clubs and RSVPs.</p>
+    </div>
+    <form method="post" class="form-grid">
+      {{ ui.csrf() }}
+      <label class="field">
+        <span class="field-label">Email</span>
+        <input type="email" name="email" value="{{ email or '' }}" required autocomplete="email" placeholder="you@college.edu">
+      </label>
+      <label class="field">
+        <span class="field-label">Password</span>
+        <input type="password" name="password" required autocomplete="current-password">
+      </label>
+      <label class="check"><input type="checkbox" name="remember"> Remember me</label>
+      <button class="btn btn-lg btn-block" type="submit">Log in</button>
+    </form>
+    <p class="auth-foot">New here? <a href="{{ url_for('auth.register') }}">Create an account</a></p>
+  </div>
+</div>
 {% endblock %}
